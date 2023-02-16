@@ -43,13 +43,14 @@ bool q_insert_head(struct list_head *head, char *s)
     element_t *node = malloc(sizeof(element_t));
     if (!node)
         return false;
-    char *str = malloc(strlen(s) * sizeof(char) + 1);
+    int str_size = strlen(s) * sizeof(char);
+    char *str = malloc(str_size + 1);
     if (!str) {
         free(node);
         return false;
     }
-    strncpy(str, s, strlen(s) * sizeof(char));
-    str[strlen(s)] = '\0';
+    strncpy(str, s, str_size);
+    str[str_size] = '\0';
     node->value = str;
     list_add(&node->list, head);
     return true;
