@@ -153,7 +153,19 @@ void q_swap(struct list_head *head)
 }
 
 /* Reverse elements in queue */
-void q_reverse(struct list_head *head) {}
+void q_reverse(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+    struct list_head *before = head->prev, *current = head, *after = NULL;
+    while (after != head) {
+        after = current->next;
+        current->next = before;
+        current->prev = after;
+        before = current;
+        current = after;
+    }
+}
 
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
