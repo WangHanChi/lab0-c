@@ -124,16 +124,16 @@ bool q_delete_mid(struct list_head *head)
 
     if (!head || list_empty(head))
         return false;
-    struct list_head *rabbit = head, *turtle = head;
-    do {
-        rabbit = rabbit->next->next;
-        if (rabbit == head->prev || rabbit == head) {
+    struct list_head *front = head->next, *back = head->prev;
+    if (front == back)
+        return false;
+    while (front != back && front->next != back) {
+        back = back->prev;
+        if (back == front || front->next == back)
             break;
-        }
-        turtle = turtle->next;
-    } while (!(rabbit == head->prev) && !(rabbit == head));
-
-    element_t *node = list_entry(turtle->next, element_t, list);
+        front = front->next;
+    }
+    element_t *node = list_entry(front->next, element_t, list);
     list_del(&node->list);
     q_release_element(node);
     return true;
