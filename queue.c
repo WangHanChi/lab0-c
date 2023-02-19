@@ -26,7 +26,7 @@ struct list_head *q_new()
 /* Free all storage used by queue */
 void q_free(struct list_head *l)
 {
-    if (list_empty(l))
+    if (!l)
         return;
     struct list_head *iter = l;
     element_t *node, *node_safe;
