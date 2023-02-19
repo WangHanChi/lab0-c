@@ -111,9 +111,9 @@ int q_size(struct list_head *head)
     if (!head || list_empty(head))
         return 0;
     int count = 0;
-    list_for_each (head->next, head) {
+    struct list_head *node;
+    list_for_each (node, head)
         ++count;
-    }
     return count;
 }
 
