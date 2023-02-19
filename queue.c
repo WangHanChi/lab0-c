@@ -1,8 +1,8 @@
+#include "queue.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "queue.h"
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -10,7 +10,9 @@
  *   cppcheck-suppress nullPointer
  */
 
-
+struct list_head *merge_two_nodes(struct list_head *left,
+                                  struct list_head *right);
+struct list_head *merge_divide(struct list_head *head);
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -221,9 +223,57 @@ void q_reverseK(struct list_head *head, int k)
         }
     }
 }
+struct list_head *merge_two_nodes(struct list_head *left,
+                                  struct list_head *right)
+{
+    struct list_head *new_head = NULL, **indirect = &new_head, **iter = NULL;
+    for (; left && right; *iter = (*iter)->next) {
+        iter = strcmp(list_entry(left, element_t, list)->value,
+                      list_entry(right, element_t, list)->value) >= 0
+                   ? &right
+                   : &left;
+        *indirect = *iter;
+        indirect = &(*indirect)->next;
+    }
+    *indirect = (struct list_head *) ((uint64_t) left | (uint64_t) right);
+    return new_head;
+}
+
+struct list_head *merge_divide(struct list_head *head)
+{
+    if (!head || !head->next)
+        return head;
+    struct list_head *rabbit = head, *turtle = head, *middle;
+
+    for (; rabbit && rabbit->next;
+         rabbit = rabbit->next->next, turtle = turtle->next)
+        ;
+    middle = turtle;
+    // cut off the link
+    turtle->prev->next = NULL;
+    struct list_head *left = merge_divide(head);
+    struct list_head *right = merge_divide(middle);
+
+    return merge_two_nodes(left, right);
+}
 
 /* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+    // cut off the link
+    head->prev->next = NULL;
+    head->next = merge_divide(head->next);
+
+    struct list_head *before = head, *after = head->next;
+    for (; after != NULL; after = after->next) {
+        after->prev = before;
+        before = after;
+    }
+    before->next = head;
+    head->prev = before;
+}
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
