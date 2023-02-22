@@ -67,6 +67,8 @@ typedef struct {
 static queue_chain_t chain = {.size = 0};
 static queue_contex_t *current = NULL;
 
+void q_shuffle(struct list_head *head);
+
 /* How many times can queue operations fail */
 static int fail_limit = BIG_LIST_SIZE;
 static int fail_count = 0;
@@ -981,6 +983,45 @@ static bool do_next(int argc, char *argv[])
     return q_show(0);
 }
 
+/* Shuffle all the nodes in the queue in a random method */
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    int num = q_size(head);
+    struct list_head *node = head->next;
+
+
+    while (num != 0) {
+        // step 2
+        int random = rand() % num;
+        for (int i = 0; i < random; ++i)
+            node = node->next;
+
+        // step 3
+        list_del(node);
+        list_add_tail(node, head);
+        node = head->next;
+        --num;
+    }
+}
+static bool do_shuffle(int argc, char *argv[])
+{
+    if (argc != 1) {
+        report(1, "%s takes no arguments", argv[0]);
+        return false;
+    }
+
+    set_noallocate_mode(true);
+    if (current && exception_setup(true))
+        q_shuffle(current->q);
+    exception_cancel();
+    set_noallocate_mode(false);
+
+    return q_show(3);
+}
+
 static void console_init()
 {
     ADD_COMMAND(new, "Create new queue", "");
@@ -1010,6 +1051,8 @@ static void console_init()
     ADD_COMMAND(dm, "Delete middle node in queue", "");
     ADD_COMMAND(dedup, "Delete all nodes that have duplicate string", "");
     ADD_COMMAND(merge, "Merge all the queues into one sorted queue", "");
+    ADD_COMMAND(shuffle,
+                "Shuffle all the nodes in the queue in a random method", "");
     ADD_COMMAND(swap, "Swap every two adjacent nodes in queue", "");
     ADD_COMMAND(descend,
                 "Remove every node which has a node with a strictly greater "
