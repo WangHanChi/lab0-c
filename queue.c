@@ -307,5 +307,32 @@ int q_descend(struct list_head *head)
 int q_merge(struct list_head *head)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
-    return 0;
+
+    if (!head)
+        return 0;
+
+    int num = 0;
+    struct list_head *master = list_entry(head->next, queue_contex_t, chain)->q;
+    num += q_size(master);
+    master->prev->next = NULL;
+    struct list_head *node = head->next->next;
+
+    while (node != head) {
+        struct list_head *slave = list_entry(node, queue_contex_t, chain)->q;
+        num += q_size(slave);
+        slave->prev->next = NULL;
+        master->next = merge_two_nodes(master->next, slave->next);
+        INIT_LIST_HEAD(slave);
+        node = node->next;
+    }
+
+    struct list_head *before = master, *after = master->next;
+    for (; after != NULL; after = after->next) {
+        after->prev = before;
+        before = after;
+    }
+    before->next = master;
+    master->prev = before;
+
+    return num;
 }
