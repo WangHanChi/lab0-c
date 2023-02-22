@@ -306,7 +306,7 @@ int q_merge(struct list_head *head)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
 
-    if (!head)
+    if (!head || list_empty(head))
         return 0;
 
     int num = 0;
