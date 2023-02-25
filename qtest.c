@@ -21,6 +21,7 @@
 
 #include "dudect/fixture.h"
 #include "list.h"
+#include "list_sort.h"
 #include "random.h"
 
 /* Shannon entropy */
@@ -74,6 +75,8 @@ static int fail_limit = BIG_LIST_SIZE;
 static int fail_count = 0;
 
 static int string_length = MAXSTRING;
+
+static int use_list_sort = 0;
 
 #define MIN_RANDSTR_LEN 5
 #define MAX_RANDSTR_LEN 10
@@ -580,6 +583,14 @@ static bool do_size(int argc, char *argv[])
     return ok && !error_check();
 }
 
+static int cmp(void *priv,
+               const struct list_head *l1,
+               const struct list_head *l2)
+{
+    return strcmp(list_entry(l1, element_t, list)->value,
+                  list_entry(l2, element_t, list)->value);
+}
+
 bool do_sort(int argc, char *argv[])
 {
     if (argc != 1) {
@@ -600,7 +611,7 @@ bool do_sort(int argc, char *argv[])
 
     set_noallocate_mode(true);
     if (current && exception_setup(true))
-        q_sort(current->q);
+        use_list_sort ? list_sort(NULL, current->q, cmp) : q_sort(current->q);
     exception_cancel();
     set_noallocate_mode(false);
 
@@ -1033,6 +1044,8 @@ static void console_init()
               NULL);
     add_param("fail", &fail_limit,
               "Number of times allow queue operations to return false", NULL);
+    add_param("listsort", &use_list_sort,
+              "Use the sort which is made by linux kernel developers", NULL);
 }
 
 /* Signal handlers */
