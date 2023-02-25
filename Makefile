@@ -9,7 +9,7 @@ DUT_DIR := dudect
 all: $(GIT_HOOKS) qtest
 
 tid := 0
-
+export cycle ?= 5
 # Control test case option of valgrind
 ifeq ("$(tid)","0")
     TCASE :=
@@ -79,5 +79,8 @@ clean:
 	rm -rf .$(DUT_DIR)
 	rm -rf *.dSYM
 	(cd traces; rm -f *~)
+
+perf: qtest
+	perf stat --repeat $(cycle) -e cache-misses,cache-references,instructions,cycles ./qtest -f traces/trace-sort.cmd
 
 -include $(deps)
