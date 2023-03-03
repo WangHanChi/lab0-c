@@ -4,6 +4,7 @@
 
 #include "constant.h"
 #include "cpucycles.h"
+#include "fixture.h"
 #include "queue.h"
 #include "random.h"
 
@@ -56,21 +57,21 @@ void prepare_inputs(uint8_t *input_data, uint8_t *classes)
     randombytes(input_data, N_MEASURES * CHUNK_SIZE);
     for (size_t i = 0; i < N_MEASURES; i++) {
         classes[i] = randombit();
-        if (classes[i] == 0)
-            memset(input_data + (size_t) i * CHUNK_SIZE, 0, CHUNK_SIZE);
-    }
-
-    for (size_t i = 0; i < N_MEASURES; ++i) {
-        /* Generate random string */
-        randombytes((uint8_t *) random_string[i], 7);
-        random_string[i][7] = 0;
+        if (classes[i] == 0) {
+            memset(input_data + (size_t) i * CHUNK_SIZE, 'a', CHUNK_SIZE - 1);
+            input_data[CHUNK_SIZE - 1] = '\0';
+        } else {
+            uint8_t rand;
+            for (size_t i = 0; i < CHUNK_SIZE - 1; i++) {
+                randombytes(&rand, 1);
+                input_data[i] = (rand % 50) + 65;
+            }
+            input_data[CHUNK_SIZE - 1] = '\0';
+        }
     }
 }
 
-bool measure(int64_t *before_ticks,
-             int64_t *after_ticks,
-             uint8_t *input_data,
-             int mode)
+bool measure(dudect_ctx_t *ctx, int mode)
 {
     assert(mode == DUT(insert_head) || mode == DUT(insert_tail) ||
            mode == DUT(remove_head) || mode == DUT(remove_tail));
@@ -82,11 +83,11 @@ bool measure(int64_t *before_ticks,
             dut_new();
             dut_insert_head(
                 get_random_string(),
-                *(uint16_t *) (input_data + i * CHUNK_SIZE) % 10000);
+                *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000);
             int before_size = q_size(l);
-            before_ticks[i] = cpucycles();
+            ctx->before_ticks[i] = cpucycles();
             dut_insert_head(s, 1);
-            after_ticks[i] = cpucycles();
+            ctx->after_ticks[i] = cpucycles();
             int after_size = q_size(l);
             dut_free();
             if (before_size != after_size - 1)
@@ -99,11 +100,11 @@ bool measure(int64_t *before_ticks,
             dut_new();
             dut_insert_head(
                 get_random_string(),
-                *(uint16_t *) (input_data + i * CHUNK_SIZE) % 10000);
+                *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000);
             int before_size = q_size(l);
-            before_ticks[i] = cpucycles();
+            ctx->before_ticks[i] = cpucycles();
             dut_insert_tail(s, 1);
-            after_ticks[i] = cpucycles();
+            ctx->after_ticks[i] = cpucycles();
             int after_size = q_size(l);
             dut_free();
             if (before_size != after_size - 1)
@@ -115,11 +116,11 @@ bool measure(int64_t *before_ticks,
             dut_new();
             dut_insert_head(
                 get_random_string(),
-                *(uint16_t *) (input_data + i * CHUNK_SIZE) % 10000 + 1);
+                *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000 + 1);
             int before_size = q_size(l);
-            before_ticks[i] = cpucycles();
+            ctx->before_ticks[i] = cpucycles();
             element_t *e = q_remove_head(l, NULL, 0);
-            after_ticks[i] = cpucycles();
+            ctx->after_ticks[i] = cpucycles();
             int after_size = q_size(l);
             if (e)
                 q_release_element(e);
@@ -133,11 +134,11 @@ bool measure(int64_t *before_ticks,
             dut_new();
             dut_insert_head(
                 get_random_string(),
-                *(uint16_t *) (input_data + i * CHUNK_SIZE) % 10000 + 1);
+                *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000 + 1);
             int before_size = q_size(l);
-            before_ticks[i] = cpucycles();
+            ctx->before_ticks[i] = cpucycles();
             element_t *e = q_remove_tail(l, NULL, 0);
-            after_ticks[i] = cpucycles();
+            ctx->after_ticks[i] = cpucycles();
             int after_size = q_size(l);
             if (e)
                 q_release_element(e);
@@ -151,10 +152,10 @@ bool measure(int64_t *before_ticks,
             dut_new();
             dut_insert_head(
                 get_random_string(),
-                *(uint16_t *) (input_data + i * CHUNK_SIZE) % 10000);
-            before_ticks[i] = cpucycles();
+                *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000);
+            ctx->before_ticks[i] = cpucycles();
             dut_size(1);
-            after_ticks[i] = cpucycles();
+            ctx->after_ticks[i] = cpucycles();
             dut_free();
         }
     }
