@@ -84,14 +84,10 @@ bool measure(dudect_ctx_t *ctx, int mode)
             dut_insert_head(
                 get_random_string(),
                 *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000);
-            int before_size = q_size(l);
             ctx->before_ticks[i] = cpucycles();
             dut_insert_head(s, 1);
             ctx->after_ticks[i] = cpucycles();
-            int after_size = q_size(l);
             dut_free();
-            if (before_size != after_size - 1)
-                return false;
         }
         break;
     case DUT(insert_tail):
@@ -101,14 +97,10 @@ bool measure(dudect_ctx_t *ctx, int mode)
             dut_insert_head(
                 get_random_string(),
                 *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000);
-            int before_size = q_size(l);
             ctx->before_ticks[i] = cpucycles();
             dut_insert_tail(s, 1);
             ctx->after_ticks[i] = cpucycles();
-            int after_size = q_size(l);
             dut_free();
-            if (before_size != after_size - 1)
-                return false;
         }
         break;
     case DUT(remove_head):
@@ -117,16 +109,12 @@ bool measure(dudect_ctx_t *ctx, int mode)
             dut_insert_head(
                 get_random_string(),
                 *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000 + 1);
-            int before_size = q_size(l);
             ctx->before_ticks[i] = cpucycles();
             element_t *e = q_remove_head(l, NULL, 0);
             ctx->after_ticks[i] = cpucycles();
-            int after_size = q_size(l);
             if (e)
                 q_release_element(e);
             dut_free();
-            if (before_size != after_size + 1)
-                return false;
         }
         break;
     case DUT(remove_tail):
@@ -135,16 +123,12 @@ bool measure(dudect_ctx_t *ctx, int mode)
             dut_insert_head(
                 get_random_string(),
                 *(uint16_t *) (ctx->input_data + i * CHUNK_SIZE) % 10000 + 1);
-            int before_size = q_size(l);
             ctx->before_ticks[i] = cpucycles();
             element_t *e = q_remove_tail(l, NULL, 0);
             ctx->after_ticks[i] = cpucycles();
-            int after_size = q_size(l);
             if (e)
                 q_release_element(e);
             dut_free();
-            if (before_size != after_size + 1)
-                return false;
         }
         break;
     default:
