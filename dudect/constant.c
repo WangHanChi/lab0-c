@@ -58,7 +58,7 @@ void prepare_inputs(uint8_t *input_data, uint8_t *classes)
     for (size_t i = 0; i < N_MEASURES; i++) {
         classes[i] = randombit();
         if (classes[i] == 0) {
-            memset(input_data + (size_t) i * CHUNK_SIZE, 'a', CHUNK_SIZE - 1);
+            memset(input_data, 'a', CHUNK_SIZE - 1);
             input_data[CHUNK_SIZE - 1] = '\0';
         } else {
             uint8_t rand;
